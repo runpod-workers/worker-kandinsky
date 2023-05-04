@@ -10,17 +10,17 @@ INPUT_SCHEMA = {
     'negative_prompt': {
         'type': str,
         'required': False,
-        'default': None
+        'default': ""
     },
     'negative_prior_prompt': {
         'type': str,
         'required': False,
-        'default': None
+        'default': ""
     },
     'negative_decoder_prompt': {
         'type': str,
         'required': False,
-        'default': None
+        'default': ""
     },
     'num_steps': {
         'type': int,
