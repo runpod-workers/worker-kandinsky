@@ -3,5 +3,5 @@
 
 runpod == 0.9.3
 opencv-python==4.7.0.72
-"git+https://github.com/ai-forever/Kandinsky-2.git"
-"git+https://github.com/openai/CLIP.git"
+git+https://github.com/ai-forever/Kandinsky-2.git
+git+https://github.com/openai/CLIP.git
