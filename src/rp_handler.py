@@ -8,10 +8,12 @@ from runpod.serverless.utils.rp_validator import validate
 
 from rp_schemas import INPUT_SCHEMA
 
+cache_dir = os.path.expanduser("~/.cache/kandinsky2")
+
 model = get_kandinsky2(
     'cuda',
     task_type='text2img',
-    cache_dir='/kandinsky2',
+    cache_dir=cache_dir,
     model_version='2.1',
     use_flash_attention=False
 )
