@@ -12,14 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Setup system packages
-        run: |
-          apt-get update
-          apt-get install -y --no-install-recommends \
-            wget \
-            libgl1-mesa-glx \
-            libglib2.0-0
-
       - name: Set up Python 3.10
         uses: actions/setup-python@v2
         with:
