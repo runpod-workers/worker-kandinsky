@@ -27,11 +27,15 @@ jobs:
           echo "PYTHONDONTWRITEBYTECODE=1" >> $GITHUB_ENV
           echo "PYTHONBUFFERED=1" >> $GITHUB_ENV
           echo "DEBIAN_FRONTEND=noninteractive" >> $GITHUB_ENV
+          echo "RUNPOD_DEBUG_LEVEL=DEBUG" >> $GITHUB_ENV
 
       - name: Install Packages
         run: |
-          apt-get install libgl1-mesa-glx
-          apt-get install libglib2.0-0
+          apt-get update
+          apt-get install -y --no-install-recommends \
+          wget \
+          libgl1-mesa-glx \
+          libglib2.0-0
 
       - name: Grab Model
         run: |
