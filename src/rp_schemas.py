@@ -61,5 +61,10 @@ INPUT_SCHEMA = {
         'type': str,
         'required': False,
         'default': "5"
+    },
+    'seed': {
+        'type': int,
+        'required': False,
+        'default': -1
     }
 }

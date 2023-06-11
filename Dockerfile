@@ -1,3 +1,4 @@
+# Base image
 FROM runpod/pytorch:3.10-2.0.0-117
 
 SHELL ["/bin/bash", "-c"]
@@ -22,6 +23,7 @@ COPY builder/requirements.txt /requirements.txt
 RUN pip install --upgrade pip && \
     pip install -r /requirements.txt && \
     rm /requirements.txt
+RUN pip install diffusers transformers accelerate
 
 # Fetch model
 COPY builder/model_fetcher.py /model_fetcher.py
