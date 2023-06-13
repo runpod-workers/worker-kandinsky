@@ -39,28 +39,34 @@ def generate_image(job):
                                                      validated_input['negative_prompt'], 
                                                      generator=generator).to_tuple()
 
+    # List to hold the image URLs
+    image_urls = []
+    
     # Create image
-    image = t2i_pipe(validated_input['prompt'], 
-                     image_embeds=image_embeds, 
-                     negative_image_embeds=negative_image_embeds,
-                     height=validated_input['h'],
-                     width=validated_input['w'],
-                     num_inference_steps=validated_input['num_steps'],
-                     guidance_scale=validated_input['guidance_scale']).images[0]
+    output = t2i_pipe(validated_input['prompt'], 
+                      image_embeds=image_embeds, 
+                      negative_image_embeds=negative_image_embeds,
+                      height=validated_input['h'],
+                      width=validated_input['w'],
+                      num_inference_steps=validated_input['num_steps'],
+                      guidance_scale=validated_input['guidance_scale'],
+                      num_images_per_prompt=validated_input['num_images']).images
 
-    # Save the generated image to a file
+    # Save the generated images to files
     os.makedirs(f"/{job['id']}", exist_ok=True)
 
-    image_path = os.path.join(f"/{job['id']}", "0.png")
-    image.save(image_path)
+    for i, image in enumerate(output):
+        image_path = os.path.join(f"/{job['id']}", f"{i}.png")
+        image.save(image_path)
 
-    # Upload the output image to the S3 bucket
-    image_url = rp_upload.upload_image(job['id'], image_path)
+        # Upload the output image to the S3 bucket
+        image_url = rp_upload.upload_image(job['id'], image_path)
+        image_urls.append(image_url)
 
     # Cleanup
     rp_cleanup.clean([f"/{job['id']}"])
 
-    return {"image_url": image_url}
+    return {"image_urls": image_urls}
 
 
 runpod.serverless.start({"handler": generate_image})
