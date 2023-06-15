@@ -27,11 +27,6 @@ INPUT_SCHEMA = {
         'required': False,
         'default': 100
     },
-    'batch_size': {
-        'type': int,
-        'required': False,
-        'default': 1
-    },
     'guidance_scale': {
         'type': float,
         'required': False,
@@ -50,7 +45,7 @@ INPUT_SCHEMA = {
     'sampler': {
         'type': str,
         'required': False,
-        'default': 'p_sampler'
+        'default': 'ddim'
     },
     'prior_cf_scale': {
         'type': float,
@@ -61,5 +56,15 @@ INPUT_SCHEMA = {
         'type': str,
         'required': False,
         'default': "5"
+    },
+    'seed': {
+        'type': int,
+        'required': False,
+        'default': -1
+    },
+    'num_images': {
+        'type': int,
+        'required': False,
+        'default': 1
     }
 }
