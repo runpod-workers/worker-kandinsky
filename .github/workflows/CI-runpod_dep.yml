@@ -15,7 +15,7 @@ jobs:
     name: Check python requirements file and update
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Check for new package version and update
         run: |
