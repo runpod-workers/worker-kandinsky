@@ -1,21 +1,29 @@
-#!/usr/bin/env python
-''' Contains the handler function that will be called by the serverless. '''
+'''
+Contains the handler function that will be called by the serverless.
+'''
 
-from diffusers import DiffusionPipeline
+
 import os
 import torch
-from runpod.serverless.utils import rp_download, rp_upload, rp_cleanup
-from runpod.serverless.utils.rp_validator import validate
+
+from diffusers import DiffusionPipeline
+
 import runpod
+from runpod.serverless.utils import rp_upload, rp_cleanup
+from runpod.serverless.utils.rp_validator import validate
+
 
 from rp_schemas import INPUT_SCHEMA
 
-pipe_prior = DiffusionPipeline.from_pretrained("kandinsky-community/kandinsky-2-1-prior", torch_dtype=torch.float16)
+pipe_prior = DiffusionPipeline.from_pretrained(
+    "kandinsky-community/kandinsky-2-1-prior", torch_dtype=torch.float16)
 pipe_prior.to("cuda")
 
-t2i_pipe = DiffusionPipeline.from_pretrained("kandinsky-community/kandinsky-2-1", torch_dtype=torch.float16)
+t2i_pipe = DiffusionPipeline.from_pretrained(
+    "kandinsky-community/kandinsky-2-1", torch_dtype=torch.float16)
 t2i_pipe.to("cuda")
 t2i_pipe.enable_xformers_memory_efficient_attention()
+
 
 def generate_image(job):
     '''
@@ -35,16 +43,17 @@ def generate_image(job):
         generator.manual_seed(validated_input['seed'])
 
     # Run inference on the model and get the image embeddings
-    image_embeds, negative_image_embeds = pipe_prior(validated_input['prompt'], 
-                                                     validated_input['negative_prompt'], 
-                                                     generator=generator).to_tuple()
+    image_embeds, negative_image_embeds = pipe_prior(
+        validated_input['prompt'],
+        validated_input['negative_prompt'],
+        generator=generator).to_tuple()
 
     # List to hold the image URLs
     image_urls = []
-    
+
     # Create image
-    output = t2i_pipe(validated_input['prompt'], 
-                      image_embeds=image_embeds, 
+    output = t2i_pipe(validated_input['prompt'],
+                      image_embeds=image_embeds,
                       negative_image_embeds=negative_image_embeds,
                       height=validated_input['h'],
                       width=validated_input['w'],
@@ -55,8 +64,8 @@ def generate_image(job):
     # Save the generated images to files
     os.makedirs(f"/{job['id']}", exist_ok=True)
 
-    for i, image in enumerate(output):
-        image_path = os.path.join(f"/{job['id']}", f"{i}.png")
+    for index, image in enumerate(output):
+        image_path = os.path.join(f"/{job['id']}", f"{index}.png")
         image.save(image_path)
 
         # Upload the output image to the S3 bucket
@@ -66,7 +75,11 @@ def generate_image(job):
     # Cleanup
     rp_cleanup.clean([f"/{job['id']}"])
 
-    return {"image_urls": image_urls}
+    # Singular backward compatibility
+    if len(image_urls) == 1:
+        return {"image_url": image_urls[0]}
+    else:
+        return {"images": image_urls}
 
 
 runpod.serverless.start({"handler": generate_image})
