@@ -16,13 +16,31 @@ from runpod.serverless.utils.rp_validator import validate
 from rp_schemas import INPUT_SCHEMA
 
 pipe_prior = DiffusionPipeline.from_pretrained(
-    "kandinsky-community/kandinsky-2-1-prior", torch_dtype=torch.float16)
-pipe_prior.to("cuda")
+    "kandinsky-community/kandinsky-2-1-prior", torch_dtype=torch.float16).to("cuda")
 
 t2i_pipe = DiffusionPipeline.from_pretrained(
-    "kandinsky-community/kandinsky-2-1", torch_dtype=torch.float16)
-t2i_pipe.to("cuda")
+    "kandinsky-community/kandinsky-2-1", torch_dtype=torch.float16).to("cuda")
 t2i_pipe.enable_xformers_memory_efficient_attention()
+
+
+def _setup_generator(seed):
+    generator = torch.Generator(device="cuda")
+    if seed != -1:
+        generator.manual_seed(seed)
+    return generator
+
+
+def _save_and_upload_images(images, job_id):
+    os.makedirs(f"/{job_id}", exist_ok=True)
+    image_urls = []
+    for index, image in enumerate(images):
+        image_path = os.path.join(f"/{job_id}", f"{index}.png")
+        image.save(image_path)
+
+        image_url = rp_upload.upload_image(job_id, image_path)
+        image_urls.append(image_url)
+    rp_cleanup.clean([f"/{job_id}"])
+    return image_urls
 
 
 def generate_image(job):
@@ -38,9 +56,7 @@ def generate_image(job):
         return {"error": validated_input['errors']}
     validated_input = validated_input['validated_input']
 
-    generator = torch.Generator(device="cuda")
-    if validated_input['seed'] != -1:
-        generator.manual_seed(validated_input['seed'])
+    generator = _setup_generator(validated_input['seed'])
 
     # Run inference on the model and get the image embeddings
     image_embeds, negative_image_embeds = pipe_prior(
@@ -61,25 +77,9 @@ def generate_image(job):
                       guidance_scale=validated_input['guidance_scale'],
                       num_images_per_prompt=validated_input['num_images']).images
 
-    # Save the generated images to files
-    os.makedirs(f"/{job['id']}", exist_ok=True)
+    image_urls = _save_and_upload_images(output, job['id'])
 
-    for index, image in enumerate(output):
-        image_path = os.path.join(f"/{job['id']}", f"{index}.png")
-        image.save(image_path)
-
-        # Upload the output image to the S3 bucket
-        image_url = rp_upload.upload_image(job['id'], image_path)
-        image_urls.append(image_url)
-
-    # Cleanup
-    rp_cleanup.clean([f"/{job['id']}"])
-
-    # Singular backward compatibility
-    if len(image_urls) == 1:
-        return {"image_url": image_urls[0]}
-    else:
-        return {"images": image_urls}
+    return {"image_url": image_urls[0]} if len(image_urls) == 1 else {"images": image_urls}
 
 
 runpod.serverless.start({"handler": generate_image})
