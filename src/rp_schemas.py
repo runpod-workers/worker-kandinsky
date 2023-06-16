@@ -66,5 +66,12 @@ INPUT_SCHEMA = {
         'type': int,
         'required': False,
         'default': 1
+    },
+
+    # Included for backwards compatibility
+    'batch_size': {
+        'type': int,
+        'required': False,
+        'default': 1
     }
 }

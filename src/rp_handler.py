@@ -49,6 +49,10 @@ def generate_image(job):
     '''
     job_input = job["input"]
 
+    # Backwards compatibility
+    if job_input.get('batch_size') is not None:
+        job_input['num_images'] = job_input['batch_size']
+
     # Input validation
     validated_input = validate(job_input, INPUT_SCHEMA)
 
