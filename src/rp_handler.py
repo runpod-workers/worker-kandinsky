@@ -6,7 +6,8 @@ Contains the handler function that will be called by the serverless.
 import os
 import torch
 
-from diffusers import DiffusionPipeline
+from diffusers import DiffusionPipeline, KandinskyImg2ImgPipeline, KandinskyPriorPipeline
+from diffusers.utils import load_image
 
 import runpod
 from runpod.serverless.utils import rp_upload, rp_cleanup
@@ -22,6 +23,8 @@ t2i_pipe = DiffusionPipeline.from_pretrained(
     "kandinsky-community/kandinsky-2-1", torch_dtype=torch.float16).to("cuda")
 t2i_pipe.enable_xformers_memory_efficient_attention()
 
+i2i_prior = KandinskyPriorPipeline(**pipe_prior.components).to("cuda")
+i2i_pipe = KandinskyImg2ImgPipeline(**t2i_pipe.components).to("cuda")
 
 def _setup_generator(seed):
     generator = torch.Generator(device="cuda")
@@ -68,18 +71,36 @@ def generate_image(job):
         validated_input['negative_prompt'],
         generator=generator).to_tuple()
 
+    # Check if an input image is provided, determining if this is text2image or image2image
+    init_image = None
+    if job_input.get('init_image', None) is not None:
+        init_image = load_image(job_input['init_image'])
+    
     # List to hold the image URLs
     image_urls = []
 
-    # Create image
-    output = t2i_pipe(validated_input['prompt'],
-                      image_embeds=image_embeds,
-                      negative_image_embeds=negative_image_embeds,
-                      height=validated_input['h'],
-                      width=validated_input['w'],
-                      num_inference_steps=validated_input['num_steps'],
-                      guidance_scale=validated_input['guidance_scale'],
-                      num_images_per_prompt=validated_input['num_images']).images
+    if init_image is None:
+        # Create text2image
+        output = t2i_pipe(validated_input['prompt'],
+                        image_embeds=image_embeds,
+                        negative_image_embeds=negative_image_embeds,
+                        height=validated_input['h'],
+                        width=validated_input['w'],
+                        num_inference_steps=validated_input['num_steps'],
+                        guidance_scale=validated_input['guidance_scale'],
+                        num_images_per_prompt=validated_input['num_images']).images
+    else:
+        # Create image2image
+        output = i2i_pipe(
+                        validated_input["prompt"],
+                        image=init_image,
+                        image_embeds=image_embeds,
+                        negative_image_embeds=negative_image_embeds,
+                        height=validated_input['h'],
+                        width=validated_input['w'],
+                        num_inference_steps=validated_input['num_steps'],
+                        strength=validated_input['strength']).images
+        
 
     image_urls = _save_and_upload_images(output, job['id'])
 
