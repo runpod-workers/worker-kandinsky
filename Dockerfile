@@ -11,13 +11,8 @@ ENV PYTHONBUFFERED 1
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install packages
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    git \
-    wget \
-    libgl1-mesa-glx \
-    libglib2.0-0 && \
-    rm -rf /var/lib/apt/lists/*
+COPY builder/packages.sh /packages.sh
+RUN /bin/bash /packages.sh && rm /packages.sh
 
 # Install Python dependencies (Worker Template)
 COPY builder/requirements.txt /requirements.txt
