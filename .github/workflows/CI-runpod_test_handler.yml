@@ -48,7 +48,7 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Install System Dependencies
-        run: /bin/bash /packages.sh && rm /packages.sh
+        run: /bin/bash /builder/packages.sh
 
       - name: Set up Python 3.10.12 & install dependencies
         uses: actions/setup-python@v4
@@ -71,7 +71,7 @@ jobs:
 
   terminate_runner:
     if: always() && !success()
-    needs: initialize_runner
+    needs: run_tests
     runs-on: ubuntu-latest
 
     steps:
