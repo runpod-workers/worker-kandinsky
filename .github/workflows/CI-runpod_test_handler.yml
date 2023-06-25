@@ -71,6 +71,11 @@ jobs:
       - name: Execute Tests
         run: |
           python src/rp_handler.py --test_input='{"input": {"prompt": "A happy place."}}'
+          python src/rp_handler.py --test_input='{"input": {    \
+                                                    "prompt": "A happy place.",          \
+                                                    "negative_prompt": "A sad place.",   \
+                                                    "num_images": 5,                     \
+                                                }}'
 
   terminate_runner:
     if: always()
