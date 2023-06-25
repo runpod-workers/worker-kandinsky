@@ -65,12 +65,15 @@ jobs:
           echo "PYTHONDONTWRITEBYTECODE=1" >> $GITHUB_ENV
           echo "PYTHONBUFFERED=1" >> $GITHUB_ENV
 
+      - name: Cache Models
+        run: python builder/cache_models.py
+
       - name: Execute Tests
         run: |
           python src/rp_handler.py --test_input='{"input": {"prompt": "A happy place."}}'
 
   terminate_runner:
-    if: always() && !success()
+    if: always()
     needs: run_tests
     runs-on: ubuntu-latest
 

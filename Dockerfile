@@ -21,9 +21,9 @@ RUN pip install --upgrade pip && \
     rm /requirements.txt
 
 # Fetch model
-COPY builder/model_fetcher.py /model_fetcher.py
-RUN python /model_fetcher.py
-RUN rm /model_fetcher.py
+COPY builder/cache_models.py /cache_models.py
+RUN python /cache_models.py
+RUN rm /cache_models.py
 
 ADD src .
 
