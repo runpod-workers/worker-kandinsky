@@ -67,6 +67,16 @@ INPUT_SCHEMA = {
         'required': False,
         'default': 1
     },
+    'strength': {
+        'type': float,
+        'required': False,
+        'default': 0.2
+    },
+    'init_image': {
+        'type': str,
+        'required': False,
+        'default': ""
+    },
 
     # Included for backwards compatibility
     'batch_size': {
