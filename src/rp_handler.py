@@ -111,7 +111,7 @@ def generate_image(job):
                 generator=generator).images
     else:
         # Create image2image
-        output = i2i_pipe(
+        output = current_t2i_pipe(
                         validated_input["prompt"],
                         image=init_image,
                         image_embeds=image_embeds,
