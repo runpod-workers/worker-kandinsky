@@ -3,9 +3,15 @@ RunPod | Kandinsky | Schemas
 '''
 
 INPUT_SCHEMA = {
+    
     'prompt': {
         'type': str,
         'required': True,
+    },
+    'model_version': {
+    'type': str,
+    'required': False,
+    'default': '2.2'
     },
     'negative_prompt': {
         'type': str,
