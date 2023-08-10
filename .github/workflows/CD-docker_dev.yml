@@ -4,10 +4,11 @@ on:
   push:
     branches:
       - "main"
+  workflow_dispatch:
 
 jobs:
   docker:
-    runs-on: ubuntu-22.04
+    runs-on: DO
     steps:
       - name: Clear Space
         run: |
