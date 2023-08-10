@@ -5,7 +5,7 @@ Contains the handler function that will be called by the serverless.
 import os
 import torch
 
-from diffusers import DiffusionPipeline, KandinskyImg2ImgPipeline, KandinskyPriorPipeline, KandinskyV22PriorPipeline, KandinskyV22Pipeline
+from diffusers import KandinskyV22PriorPipeline, KandinskyV22Pipeline
 from diffusers.utils import load_image
 
 import runpod
@@ -15,11 +15,11 @@ from runpod.serverless.utils.rp_validator import validate
 from rp_schemas import INPUT_SCHEMA
 
 # Kandinsky 2.1 pipelines
-pipe_prior_2_1 = DiffusionPipeline.from_pretrained(
-    "kandinsky-community/kandinsky-2-1-prior", torch_dtype=torch.float16).to("cuda")
-t2i_pipe_2_1 = DiffusionPipeline.from_pretrained(
-    "kandinsky-community/kandinsky-2-1", torch_dtype=torch.float16).to("cuda")
-t2i_pipe_2_1.enable_xformers_memory_efficient_attention()
+# pipe_prior_2_1 = DiffusionPipeline.from_pretrained(
+#     "kandinsky-community/kandinsky-2-1-prior", torch_dtype=torch.float16).to("cuda")
+# t2i_pipe_2_1 = DiffusionPipeline.from_pretrained(
+#     "kandinsky-community/kandinsky-2-1", torch_dtype=torch.float16).to("cuda")
+# t2i_pipe_2_1.enable_xformers_memory_efficient_attention()
 
 # Kandinsky 2.2 pipelines
 pipe_prior_2_2 = KandinskyV22PriorPipeline.from_pretrained(
@@ -67,10 +67,10 @@ def generate_image(job):
     generator = _setup_generator(validated_input['seed'])
 
     # Choose the correct model based on the model_version field
-    if validated_input.get('model_version') == '2.1':
-        current_pipe_prior, current_t2i_pipe = pipe_prior_2_1, t2i_pipe_2_1
-    else:  # Default to Kandinsky 2.2
-        current_pipe_prior, current_t2i_pipe = pipe_prior_2_2, t2i_pipe_2_2
+    # if validated_input.get('model_version') == '2.1':
+    #     current_pipe_prior, current_t2i_pipe = pipe_prior_2_1, t2i_pipe_2_1
+    # else:  # Default to Kandinsky 2.2
+    current_pipe_prior, current_t2i_pipe = pipe_prior_2_2, t2i_pipe_2_2
 
     # Run inference on the model and get the image embeddings
     image_embeds, negative_image_embeds = current_pipe_prior(
