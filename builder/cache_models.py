@@ -6,12 +6,6 @@ import torch
 from diffusers import KandinskyV22PriorPipeline, KandinskyV22Pipeline
 
 def get_kandinsky_pipelines():
-    # Kandinsky 2.1 pipelines
-    # pipe_prior_2_1 = DiffusionPipeline.from_pretrained(
-    #     "kandinsky-community/kandinsky-2-1-prior", torch_dtype=torch.float16)
-    # t2i_pipe_2_1 = DiffusionPipeline.from_pretrained(
-    #     "kandinsky-community/kandinsky-2-1", torch_dtype=torch.float16)
-
     # Kandinsky 2.2 pipelines
     pipe_prior_2_2 = KandinskyV22PriorPipeline.from_pretrained(
         "kandinsky-community/kandinsky-2-2-prior", torch_dtype=torch.float16, force_download=True, resume_download=False)

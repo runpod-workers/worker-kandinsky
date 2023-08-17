@@ -14,13 +14,6 @@ from runpod.serverless.utils.rp_validator import validate
 
 from rp_schemas import INPUT_SCHEMA
 
-# Kandinsky 2.1 pipelines
-# pipe_prior_2_1 = DiffusionPipeline.from_pretrained(
-#     "kandinsky-community/kandinsky-2-1-prior", torch_dtype=torch.float16).to("cuda")
-# t2i_pipe_2_1 = DiffusionPipeline.from_pretrained(
-#     "kandinsky-community/kandinsky-2-1", torch_dtype=torch.float16).to("cuda")
-# t2i_pipe_2_1.enable_xformers_memory_efficient_attention()
-
 # Kandinsky 2.2 pipelines
 pipe_prior_2_2 = KandinskyV22PriorPipeline.from_pretrained(
     "kandinsky-community/kandinsky-2-2-prior", torch_dtype=torch.float16).to("cuda")
@@ -33,6 +26,8 @@ def _setup_generator(seed):
     generator = torch.Generator(device="cuda")
     if seed != -1:
         generator.manual_seed(seed)
+    else:
+        generator.seed()
     return generator
 
 def _save_and_upload_images(images, job_id):
@@ -66,10 +61,6 @@ def generate_image(job):
 
     generator = _setup_generator(validated_input['seed'])
 
-    # Choose the correct model based on the model_version field
-    # if validated_input.get('model_version') == '2.1':
-    #     current_pipe_prior, current_t2i_pipe = pipe_prior_2_1, t2i_pipe_2_1
-    # else:  # Default to Kandinsky 2.2
     current_pipe_prior, current_t2i_pipe = pipe_prior_2_2, t2i_pipe_2_2
 
     # Run inference on the model and get the image embeddings
@@ -88,27 +79,15 @@ def generate_image(job):
 
     if init_image is None:
         # Create text2image
-        if validated_input['model_version'] == '2.1':
-            output = current_t2i_pipe(
-                validated_input['prompt'], 
-                image_embeds=image_embeds, 
-                negative_image_embeds=negative_image_embeds,
-                height=validated_input['h'],
-                width=validated_input['w'],
-                num_inference_steps=validated_input['num_steps'],
-                guidance_scale=validated_input['guidance_scale'],
-                num_images_per_prompt=validated_input['num_images'],
-                generator=generator).images
-        else:
-            output = current_t2i_pipe(
-                image_embeds=image_embeds,
-                negative_image_embeds=negative_image_embeds,
-                height=validated_input['h'],
-                width=validated_input['w'],
-                num_inference_steps=validated_input['num_steps'],
-                guidance_scale=validated_input['guidance_scale'],
-                num_images_per_prompt=validated_input['num_images'],
-                generator=generator).images
+        output = current_t2i_pipe(
+            image_embeds=image_embeds,
+            negative_image_embeds=negative_image_embeds,
+            height=validated_input['h'],
+            width=validated_input['w'],
+            num_inference_steps=validated_input['num_steps'],
+            guidance_scale=validated_input['guidance_scale'],
+            num_images_per_prompt=validated_input['num_images'],
+            generator=generator).images
     else:
         # Create image2image
         output = current_t2i_pipe(
